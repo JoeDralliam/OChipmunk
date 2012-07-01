@@ -1,0 +1,35 @@
+# OASIS_START
+# DO NOT EDIT (digest: 83f1bf59dbbe0c23ca77d616fc306ec1)
+CpArbiter
+CpBB
+CpBody
+CpBoxShape
+CpCircleShape
+CpContact
+CpFloat
+CpNearestPointQueryInfo
+CpPolyShape
+CpSegmentQueryInfo
+CpSegmentShape
+CpShape
+CpShapeType
+CpType
+CpSpace
+CpVector
+Ochipmunk
+CpArbiterThread
+CpArray
+CpBBTree
+CpCollision
+CpConstraintUtils
+CpContactBuffer
+CpHashSet
+CpOption
+CpPrivate
+CpSpaceComponent
+CpSpaceHash
+CpSpatialIndex
+CpSpatialIndexType
+CpSplittingPlane
+Prime
+# OASIS_STOP

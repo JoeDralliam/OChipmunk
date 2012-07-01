@@ -1,0 +1,11 @@
+# OASIS_START
+# DO NOT EDIT (digest: 3522d1b3eabd6baeb0eab1a0c4eaed96)
+version = "0.01a"
+description = "Ocaml port of chipmunk C library"
+archive(byte) = "OChipmunk.cma"
+archive(byte, plugin) = "OChipmunk.cma"
+archive(native) = "OChipmunk.cmxa"
+archive(native, plugin) = "OChipmunk.cmxs"
+exists_if = "OChipmunk.cmxa"
+# OASIS_STOP
+
