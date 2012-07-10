@@ -1,3 +1,0 @@
-open CpPrivate
-
-let eql : 'a.'a constraint' -> 'a constraint' -> bool = (==) 
