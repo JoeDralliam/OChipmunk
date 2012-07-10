@@ -31,7 +31,9 @@ let circle2segment (circle,_) (segment,_) con =
   let center = CircleImpl.( circle.tc) in
 
   let seg_delta = CpVector.sub seg_b seg_a in
-  let closest_t = CpFloat.clamp01 CpVector.((dot seg_delta (sub center seg_a)) /. (lengthsq seg_delta)) in
+  let closest_t = CpFloat.clamp01 CpVector.(
+    (dot seg_delta (sub center seg_a)) /. (lengthsq seg_delta)
+  ) in
   let closest = CpVector.(add seg_a (mult seg_delta closest_t)) in
   if (circle2circle_query center closest CircleImpl.(circle.r) SegmentImpl.(segment.r) con) <> 0
   then 
@@ -62,7 +64,7 @@ let find_msa poly planes =
         impl (i+1) m m_idx
       end
     else (m_idx, m)
-  in impl 0 neg_infinity 0
+  in impl 0 neg_infinity (-1)
 
 let find_verts_fallback arr (poly1,shape1) (poly2,shape2) n dist =
   let num = ref 0 in
@@ -145,7 +147,7 @@ let seg2poly (seg,shape1) (poly,shape2) arr =
         end
       else (mini, poly_min)
     in 
-    let (mini, poly_min) = impl 0 neg_infinity 0 in
+    let (mini, poly_min) = impl 0 neg_infinity (-1) in
     if mini = -1
     then 0
     else
@@ -179,8 +181,8 @@ let seg2poly (seg,shape1) (poly,shape2) arr =
   end
 
 let circle2poly (circ,shape1) (poly,shape2) con =
-  let module Circle = CircleImpl in
-  let module Poly   =   PolyShapeImpl in
+  let module Circle = CircleImpl    in
+  let module Poly   = PolyShapeImpl in
   let planes = Poly.(poly.t_planes) in
 
   let num_planes = Array.length planes in

@@ -2,8 +2,8 @@ type t = { x:float ; y:float }
 
 let zero = { x = 0. ; y = 0. }
 
-let make x' y' =
-  { x = x' ; y = y' }
+let make x y =
+  { x ; y }
 
 let add v1 v2 =
   make (v1.x +. v2.x) (v1.y +. v2.y)

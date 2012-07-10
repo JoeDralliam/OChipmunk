@@ -10,6 +10,18 @@ struct
   open BBTreeImpl
   type 'a t = 'a CpSpatialIndexType.BBTreeImpl.t
 
+
+  let leaf_eql : 'a. 'a Subtree.leaf -> 'a Subtree.leaf -> bool = (==)
+  let node_eql : 'a. 'a Subtree.node -> 'a Subtree.node -> bool = (==)
+
+  let subtree_eql a b = 
+    let open Subtree in
+        match (a,b) with
+          | (Leaf n1, Leaf n2) -> leaf_eql n1 n2
+          | (Node n1, Node n2) -> node_eql n1 n2
+          | _ -> false
+
+
   let node_parent node =
     let open Subtree in
         match node with
@@ -78,7 +90,7 @@ struct
         
         (match next with
           | Some n -> begin
-            if n.thread_a.leaf == thread.leaf
+            if leaf_eql n.thread_a.leaf thread.leaf
             then n.thread_a.prev <- prev
             else n.thread_b.prev <- prev
           end
@@ -86,7 +98,7 @@ struct
         
         (match prev with
           | Some p -> begin
-            if p.thread_a.leaf == thread.leaf
+            if leaf_eql p.thread_a.leaf thread.leaf
             then p.thread_a.next <- next
             else p.thread_b.next <- next
           end
@@ -98,7 +110,7 @@ struct
           match p with 
             | Some pair -> begin
               let next = 
-                if pair.thread_a.leaf == leaf
+                if leaf_eql pair.thread_a.leaf leaf
                 then begin
                   let next = pair.thread_a.next in
                   thread_unlink pair.thread_b ;
@@ -129,17 +141,17 @@ struct
 
         (match nextA with
           | Some nA -> 
-              if nA.thread_a.leaf == a 
+              if leaf_eql nA.thread_a.leaf a 
               then nA.thread_a.prev <- pair
               else nA.thread_b.prev <- pair
           | _ -> () ) ;
         (match nextB with
           | Some nB ->
-              if nB.thread_a.leaf == b
+              if leaf_eql nB.thread_a.leaf b
               then nB.thread_a.prev <- pair
               else nB.thread_b.prev <- pair
           | _ -> ())
-
+            
 (* node : 'a internal_node ;
    value : 'a node *)
   let node_set_a node value =
@@ -170,11 +182,16 @@ struct
 
   let node_other node child =
     let open Subtree in
-        if node.node.a == child then node.node.b else node.node.a
+        assert (subtree_eql child node.node.a || subtree_eql child node.node.b) ;
+
+        if subtree_eql node.node.a child then node.node.b else node.node.a
 
   let node_replace_child parent child value tree =
     let open Subtree in
-        if parent.node.a == child
+        if not (subtree_eql child parent.node.a || subtree_eql child parent.node.b)
+        then Printf.eprintf "Internal Error: Node is not a child of parent." ;
+        
+        if subtree_eql child parent.node.a
         then node_set_a parent value
         else node_set_b parent value ;
         
@@ -258,7 +275,7 @@ struct
           let leaf = CpOption.(!? leaf) in
           match subtree with
             | Leaf l -> 
-                if l == leaf
+                if leaf_eql l leaf
                 then None
                 else begin
                   let parent = CpOption.(!? (leaf.parent)) in
@@ -267,7 +284,7 @@ struct
                 end
             | Node i ->
                 let parent = CpOption.(!? (leaf.parent)) in
-                if parent == i 
+                if node_eql parent i 
                 then begin
                   let other = node_other i (Leaf leaf) in
                   (node_set_parent other i.parent);
@@ -291,9 +308,10 @@ struct
                   then pair_insert l leaf tree ;
                   func leaf.node.obj l.node.obj
                 end
-            | Node i ->
+            | Node i -> begin
                 mark_leaf_query i.node.a leaf left tree func ;
                 mark_leaf_query i.node.b leaf left tree func 
+            end
         end
 
   let mark_leaf leaf tree idx static_root func =
@@ -307,7 +325,7 @@ struct
           let rec mark_cousin node =
             match (node_parent node) with
               | Some parent -> begin
-                if node == parent.node.a
+                if subtree_eql node parent.node.a
                 then mark_leaf_query parent.node.b leaf true tree func
                 else mark_leaf_query parent.node.a leaf false tree func ;
                 mark_cousin (Node parent)
@@ -320,11 +338,13 @@ struct
           let rec iter_over_pairs p =
             match p with
               | Some pair ->
-                  if leaf == pair.thread_b.leaf
-                  then (func pair.thread_a.leaf.node.obj leaf.node.obj ; 
-                        iter_over_pairs pair.thread_b.next)
-                  else (iter_over_pairs pair.thread_a.next)
-              | None -> ()
+                  let next = 
+                    if leaf_eql leaf pair.thread_b.leaf
+                    then (func pair.thread_a.leaf.node.obj leaf.node.obj ; 
+                          pair.thread_b.next)
+                    else (pair.thread_a.next)
+                  in iter_over_pairs next
+                | None -> ()
           in
           iter_over_pairs leaf.node.pairs
         end
@@ -462,8 +482,8 @@ struct
 
   let rec partition_nodes tree nodes offset count =
     let open Subtree in
-        if count == 1 then Leaf nodes.(offset)
-        else if count == 2 then node_make tree (Leaf nodes.(offset)) (Leaf nodes.(1 + offset))
+        if count = 1 then Leaf nodes.(offset)
+        else if count = 2 then node_make tree (Leaf nodes.(offset)) (Leaf nodes.(1 + offset))
         else begin
           let bb = begin
             let bb_tmp = ref (CpBB.make 0. 0. 0. 0.) in

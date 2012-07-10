@@ -29,7 +29,9 @@ let k_scalar_body body r n =
   body.bm_inv +. body.bi_inv *. rcn *. rcn
 
 let k_scalar a b r1 r2 n =
-  (k_scalar_body a r1 n) +. (k_scalar_body b r2 n)
+  let res = (k_scalar_body a r1 n) +. (k_scalar_body b r2 n) in
+  CpPrivate.assert_soft (res <> 0.) "Unsolvable collision or constraint." ;
+  res
 
 let k_tensor a b r1 r2 =
   let open CpVector in

@@ -14,6 +14,7 @@ let is_rogue = CpPrivate.Body.is_rogue
 
 let kinetic_energy = CpPrivate.Body.kinetic_energy
 
+let eql = CpPrivate.Body.eql
 
 let activate body =
   if not (is_rogue body)
@@ -26,19 +27,25 @@ let activate_static body filter =
   assert (is_static body) ;
 
   let activate_arbiter arb =
-    activate (if arb.abody_a == body then arb.abody_b else arb.abody_a)
+    activate (if eql arb.abody_a body then arb.abody_b else arb.abody_a)
   in
 
   CpPrivate.Body.foreach_arbiter body (fun arb ->
     match filter with
       | None -> activate_arbiter arb
-      | Some filt when filt == arb.aa || filt == arb.ab -> activate_arbiter arb
+      | Some filt when CpPrivate.Shape.eql filt arb.aa || CpPrivate.Shape.eql filt arb.ab 
+          -> activate_arbiter arb
       | _ -> ()
   )
 
 let push_arbiter body arb =
+  CpPrivate.assert_soft ((CpArbiterThread.for_body arb body).thnext = None) "Internal Error: Dangling contact graph pointers detected. (A)" ;
+  CpPrivate.assert_soft ((CpArbiterThread.for_body arb body).thprev = None) "Internal Error: Dangling contact graph pointers detected. (B)" ;
+
   let next = body.barbiter_list in
+  CpPrivate.assert_soft (next = None || (CpArbiterThread.for_body CpOption.(!?next) body).thprev = None) "Internal Error: Dangling contact graph pointers detected. (C)" ; 
   (CpArbiterThread.for_body arb body).thnext <- next ;
+
   CpOption.do_if (fun n -> (CpArbiterThread.for_body n body).thprev <- Some arb) next ;
   body.barbiter_list <- Some arb
 
@@ -47,12 +54,12 @@ let sleep_with_group body group =
 
   let space = CpOption.(!?(body.bspace)) in
   assert (space.splocked <> 0) ;
-
+  assert (group = None || is_sleeping CpOption.(!?group))  ;
   if is_sleeping body
   then assert  CpSpaceComponent.Component.( 
     match (root (Some body), root group) with 
       | (None,None) -> true
-      | (Some a, Some b) when a == b -> true
+      | (Some a, Some b) when eql a b -> true
       | _ -> false
   ) ;
 
@@ -193,10 +200,10 @@ let remove_shape body shape =
 let rec filter_constraints n body filter =
   match n with 
     | Some node ->
-        if node == filter
+        if CpConstraint.eql node filter
         then CpPrivate.next_constraint node body
         else begin
-          if node.ca == body
+          if eql node.ca body
           then node.cnext_a <- (filter_constraints node.cnext_a body filter)
           else node.cnext_b <- (filter_constraints node.cnext_b body filter) ;
           n
@@ -260,11 +267,6 @@ let get_vel_at_world_point body point =
 let get_vel_at_local_point body point =
   get_vel_at_point body CpVector.(rotate point body.brot)
 
-let kynetic_energy body =
-  let vsq = CpVector.dot body.bv body.bv in
-  let wsq = body.bw *. body.bw in
-  (if vsq > 0. then vsq *. body.bm else 0.) +. (if wsq > 0. then wsq *. body.bi else 0.)
-
 let each_shape body func =
   let rec iter list =
     match list with
@@ -293,7 +295,7 @@ let each_arbiter body func =
     match list with
       | Some arb -> begin
         let next = CpPrivate.next_arbiter arb body in
-        arb.aswapped_coll <- (body == arb.abody_b) ;
+        arb.aswapped_coll <- (eql body arb.abody_b) ;
         func body arb ;
         iter next
       end
@@ -347,249 +349,3 @@ let make_static () =
   body
 
 
-(*
-  class body m' i' =
-  object (self)
-  val mutable velocity_func = (fun b -> b#update_velocity )
-  val mutable position_func = (fun b -> b#update_position )
-
-  val mutable m = 0.
-  val mutable m_inv = 0.
-
-  val mutable i = 0.
-  val mutable i_inv = 0.
-
-  val mutable p = CpVector.zero
-  val mutable v = CpVector.zero
-  val mutable f = CpVector.zero
-
-  val mutable a = 0.
-  val mutable w = 0.
-  val mutable t = 0.
-
-  val mutable rot = 0.
-
-(*val mutable data*)
-
-  val mutable v_limit = infinity
-  val mutable w_limit = infinity
-
-  val mutable v_bias = CpVector.zero
-  val mutable w_bias = 0.
-
-  val mutable space = None
-
-  val mutable shape_list = None
-  val mutable arbiter_list = None
-  val mutable constaint_list = None
-
-  val node = ComponentNode.({ root = None ; next = None ; idleTime = 0. })
-
-  initializer self#set_mass m'
-  initializer self#set_moment i'
-  initializer self#set_angle 0.
-
-
-(*  method m = m
-  method m_inv = m_inv
-
-  method i = i
-  method i_inv = i_inv
-
-  method p = p
-  method v = v
-  method f = f
-
-  method a = a
-  method w = w
-  method t = t
-
-  method rot = rot
-
-  method v_limit = v_limit
-  method w_limit = w_limit
-
-*)
-  method is_sleeping =
-  ComponentNode.(node.root) <> None
-  method is_static =
-  ComponentNode.(node.idleTime) = infinity
-  method is_rogue =
-  space = None
-
-  method get_space = space
-
-  method get_mass = m
-  method set_mass mass =
-  assert mass > 0. ;
-  self#activate ;
-  m <- mass ;
-  m_inv <- 1. /. mass
-
-  method get_moment = i
-  method set_moment moment =
-  assert moment > 0. ;
-  self#activate ;
-  i <- moment ;
-  i_inv <- 1. /. moment
-
-  method get_pos = pos
-  method set_pos pos =
-  self#activate ;
-  self#assert_sane ;
-  p <- pos
-
-  method get_vel = v
-  method set_vel v' = 
-  self#activate ;
-  self#assert_sane ;
-  v <- v'
-
-  method get_force = f
-  method set_force f' = 
-  self#activate ;
-  self#assert_sane ;
-  f <- f'
-
-  method get_angle = a
-  method private set_angle_impl angle =
-  a <- angle ;
-  rot <- CpVector.forangle angle
-  method set_angle angle =
-  self#activate ;
-  self#assert_sane ;
-  self#set_angle_impl angle
-
-  method get_ang_vel = w
-  method set_ang_vel w' =
-  self#activate ;
-  self#assert_sane ;
-  w <- w'
-
-  method get_torque = t
-  method set_torque t' =
-  self#activate ;
-  self#assert_sane ;
-  t <- t'
-
-  method get_rot = rot
-
-  method get_vel_limit = v_limit
-  method set_vel_limit v_limit' =
-  self#activate ;
-  self#assert_sane ;
-  v_limit <- v_limit'
-
-  method get_ang_vel_limit = w_limit
-  method set_ang_vel_limit w_limit' =
-  self#activate ;
-  self#assert_sane ;
-  w_limit <- w_limit'
-
-  method update_velocity gravity damping dt = 
-  let open CpVector in
-  v <- clamp (add (mult v damping) (mult (add gravity (mult f m_inv)) dt)) v_limit ;
-  w <- clamp (w *. damping +. t *. i_inv *. dt) (-.w_limit) w_limit ;
-  self#sanity_check
-
-  method update_position =
-  p <- CpVector.(add p (mult (add v v_bias) dt)) ;
-  self#set_angle_impl (a +. (w +. w_bias) *. dt) ;
-  v_bias <- CpVector.zero ;
-  w_bias <- 0. ;
-  self#sanity_check
-
-  method local2world v =
-  CpVector.(add p (rotate v rot))
-
-  method world2local v =
-  CpVector.(unrotate (sub v p) rot)
-
-  method reset_forces =
-  self#activate ;
-  f <- CpVector.zero ;
-  t <- 0.
-
-  method apply_force force r
-  self#activate ;
-  f <- add f force ;
-  t <- t +. (CpVector.cross r force)
-
-  method apply_impulse j r
-  self#activate ;
-  appl ...
-
-  method get_vel_at_world_point point =
-  self#get_vel_at_point CpVector.(sub point p)
-
-  method get_vel_at_local_point point =
-  self#get_vel_at_point CpVector.(rotate point rot)
-
-  method kinetic_energy =
-  let vsq = dot v v in
-  let wsq = w *. w in
-  (if vsq > 0. then vsq *. m else 0.) +. (if wsq > 0. then wsq *. i else 0.)
-
-  method each_shape func =
-  let rec impl shape =
-  match shape with
-  | None -> ()
-  | Some s -> begin
-  let next = s#next in
-  func self s ;
-  impl next
-  end
-  in
-  impl body#shape
-
-  method each_constraint func =
-  let rec impl constraint' =
-  match constraint' with
-  | None -> ()
-  | Some c -> begin
-  let next = c#next in
-  func self c ;
-  impl next
-  end
-  in
-  impl constraint_list
-  
-  method each_arbiter func =
-  let rec impl arbiter =
-  match arbiter with
-  | None -> ()
-  | Some a -> begin
-  let next = a#next in
-  a#set_swapped_coll (body = arb#body_b) ;
-  func self a ;
-  impl next
-  end
-  in
-  impl arbiter_list
-
-(* PRIVATE *)
-
-  method add_shape shape =
-  let next = shapeList in
-  do_if (fun n -> n#set_prev shape) next
-  shape#set_next next ;
-  shapeList <- (Some shape)
-
-  method remove_shape shape =
-  let prev = shape#prev in
-  let next = shape#next in
-  (match prev with
-  | Some p -> p#set_next next
-  | None -> (shapeList <- next) ) ;
-  do_if (fun n -> n#set_prev prev) next ;
-  shape#set_prev None ;
-  shape#set_next None
-  
-  method remove_constraint body constraint' =
-  constraintList <- filter_constraints constraintList self constraint'
-
-  method private get_vel_at_point r
-  CpVector.(add v (mult (perp r) w))
-
-  end
-*)

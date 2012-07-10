@@ -87,9 +87,9 @@ struct
     let max = ref !min in
     Array.iteri( fun i v -> begin
       let open CpVector in
-	  if v.x < !min.x || (v.x == !min.x && v.y < !min.y)
+	  if v.x < !min.x || (v.x = !min.x && v.y < !min.y)
 	  then (min := v ; start := i)
-	  else if v.x > !max.x || (v.x == !max.x && v.y > !max.y)
+	  else if v.x > !max.x || (v.x = !max.x && v.y > !max.y)
 	  then (max := v ; end_ := i)
     end ) verts ;
     (!start, !end_)

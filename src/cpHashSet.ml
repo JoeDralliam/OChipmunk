@@ -106,7 +106,11 @@ let filter set func =
   for i = 0 to (Int64.to_int set.size) - 1
   do
     let list = set.table.(i) in
-    set.table.(i) <- List.filter (fun bin -> func HashSetBin.(bin.elt)) list
+    set.table.(i) <- List.filter (fun bin -> begin
+      let keep = func HashSetBin.(bin.elt) in
+      if not keep then set.entries <- set.entries - 1 ;
+      keep
+    end) list
   done 
 
 (*

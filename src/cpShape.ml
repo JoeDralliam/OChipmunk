@@ -6,6 +6,8 @@ let do_if f opt = match opt with
   | Some v -> f v
   | None -> ()
 
+let eql = CpPrivate.Shape.eql
+
 let id_counter = ref 0
 let reset_id_counter () =
   id_counter := 0

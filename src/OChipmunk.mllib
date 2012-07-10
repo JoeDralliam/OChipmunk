@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: 83f1bf59dbbe0c23ca77d616fc306ec1)
+# DO NOT EDIT (digest: 56ad873d2ebc6cdb5b032d23af1c4810)
 CpArbiter
 CpBB
 CpBody
@@ -21,6 +21,7 @@ CpArbiterThread
 CpArray
 CpBBTree
 CpCollision
+CpConstraint
 CpConstraintUtils
 CpContactBuffer
 CpHashSet

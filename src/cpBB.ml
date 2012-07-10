@@ -6,8 +6,8 @@ type t =
       t:float
     }
 
-let make l' b' r' t' =
-  { l = l' ; b = b' ; r = r' ; t = t' }
+let make l b r t =
+  { l ; b ; r ; t }
 
 let make_for_circle p r =
   make CpVector.(p.x -. r) CpVector.(p.y -. r) CpVector.(p.x +. r) CpVector.(p.y +. r)
@@ -40,9 +40,9 @@ let segment_query bb a b =
   let txmin = min tx1 tx2 in
   let txmax = max tx1 tx2 in
 
-  let idy = 1. /. CpVector.(b.x -. a.x) in
-  let ty1 = if bb.b == CpVector.(a.y) then neg_infinity else CpVector.(bb.b -. a.y) *. idy in
-  let ty2 = if bb.t == CpVector.(a.y) then infinity else CpVector.(bb.t -. a.y) *. idy in
+  let idy = 1. /. CpVector.(b.y -. a.y) in
+  let ty1 = if bb.b = CpVector.(a.y) then neg_infinity else CpVector.(bb.b -. a.y) *. idy in
+  let ty2 = if bb.t = CpVector.(a.y) then infinity else CpVector.(bb.t -. a.y) *. idy in
   let tymin = min ty1 ty2 in
   let tymax = max ty1 ty2 in
 

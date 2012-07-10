@@ -40,7 +40,7 @@ let transform_verts poly p rot =
   let t = ref neg_infinity in
   Array.iteri (fun i vert -> CpVector.(
     let v = add p (rotate vert rot) in
-    poly.t_verts.(i) <- vert ;
+    poly.t_verts.(i) <- v ;
     l := min !l v.x ;
     r := max !r v.x ;
     b := min !b v.y ;
@@ -51,7 +51,7 @@ let transform_verts poly p rot =
 let transform_axes poly p rot =
   Array.iteri (fun i plane -> CpVector.(
     let n = rotate plane.n rot in
-    let d = (dot p n) +. plane.d in
+    let d = dot p n +. plane.d in
     poly.t_planes.(i) <- { n ; d }
   ) ) poly.planes
 
@@ -119,7 +119,7 @@ let validate verts =
       let b = verts.( (i+1) mod length ) in
       let c = verts.( (i+2) mod length ) in
       if CpVector.(cross (sub b a) (sub c a)) > 0.
-      then true
+      then false
       else validate_impl array (i+1)
     end
     else true
@@ -146,7 +146,7 @@ let set_up_verts verts offset =
   Array.iteri (fun i vert -> CpVector.(
     let a = add offset vert in
     let b = add offset verts.( (i+1) mod num_verts ) in
-    let n = normalize (sub b a) in
+    let n = normalize (perp (sub b a)) in
 
     poly.verts.(i) <- a ;
     poly.planes.(i) <- { n ; d = dot n a }
@@ -154,5 +154,5 @@ let set_up_verts verts offset =
   poly
 
 
-let make verts offset =
-  set_up_verts verts offset
+let make =
+  set_up_verts

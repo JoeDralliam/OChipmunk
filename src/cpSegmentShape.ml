@@ -1,7 +1,6 @@
 open CpShapeType.SegmentImpl
 
-let circle_segment_query shape center r a b = 
-  let blank = CpSegmentQueryInfo.({ shape = None ; t = 0. ; n = CpVector.zero }) in
+let circle_segment_query shape center r a b default = 
   let open CpVector in
       let a = sub a center in
       let b = sub b center in
@@ -15,8 +14,8 @@ let circle_segment_query shape center r a b =
 	let t = (-. qb -. (sqrt det)) /. (2. *. qa) in
 	if 0. <= t && t <= 1. 
 	then  CpSegmentQueryInfo.({ shape = Some shape ; t ; n = normalize (lerp a b t) })
-	else blank
-      else blank
+	else default
+      else default
 
 
 let set_neighbors seg _ prev next =
@@ -91,8 +90,9 @@ let segment_query seg shape a b =
     else if (r <> 0.)
     then
       let (info1, info2) =
-	( circle_segment_query shape seg.ta seg.r a b ,
-	  circle_segment_query shape seg.tb seg.r a b )
+        let def = CpSegmentQueryInfo.({ shape = None ; t = 1. ; n = CpVector.zero }) in
+	( circle_segment_query shape seg.ta seg.r a b def,
+	  circle_segment_query shape seg.tb seg.r a b def)
       in
       if CpSegmentQueryInfo.( info1.t < info2.t )
       then info1

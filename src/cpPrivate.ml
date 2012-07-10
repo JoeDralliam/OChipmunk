@@ -72,6 +72,7 @@ struct
         | None -> ()
     in impl root
 
+  let eql : body' -> body' -> bool = (==)
 
   let is_sleeping body = 
     ComponentNode.(body.bnode.root) <> None
@@ -103,4 +104,6 @@ struct
     in
     shape.shbb <- impl pos rot ;
     shape.shbb
+
+  let eql : shape' -> shape' -> bool = (==)
 end

@@ -18,7 +18,7 @@ let activate_body space body =
 
     Body.foreach_arbiter body (fun arb -> begin
       let body_a = arb.abody_a in
-      if body == body_a || Body.is_static body_a
+      if Body.eql body body_a || Body.is_static body_a
       then begin
         let contacts = arb.acontacts in
         let num_contacts = CpArray.length contacts in
@@ -29,7 +29,7 @@ let activate_body space body =
         let a = arb.aa and b = arb.ab in
         let shape_pair = (a,b) in
         let arb_hashid = hash_pair (a.shhashid) (b.shhashid) in
-        CpHashSet.insert space.spcached_arbiters arb_hashid shape_pair (fun _ x -> x) arb ;
+        ignore( CpHashSet.insert space.spcached_arbiters arb_hashid shape_pair (fun _ x -> x) arb ) ;
 
         arb.astamp <- space.spstamp ;
         arb.ahandler <- Space.lookup_handler space a.shcollision_type b.shcollision_type ;
@@ -39,7 +39,7 @@ let activate_body space body =
 
     Body.foreach_constraint body (fun constr ->
       let body_a = constr.ca in
-      if body == body_a || Body.is_static body_a
+      if Body.eql body body_a || Body.is_static body_a
       then space.spconstraints <- constr :: space.spconstraints
     )
   end
@@ -56,7 +56,7 @@ let deactivate_body space body =
 
   Body.foreach_arbiter body (fun arb -> begin
     let body_a = arb.abody_a in
-    if body == body_a || Body.is_static body_a
+    if Body.eql body body_a || Body.is_static body_a
     then begin
       Space.uncache_arbiter space arb ;
       arb.acontacts <- CpArray.copy arb.acontacts ;
@@ -65,7 +65,7 @@ let deactivate_body space body =
 
   Body.foreach_constraint body (fun constr ->
     let body_a = constr.ca in
-    if body == body_a || Body.is_static body_a
+    if Body.eql body body_a || Body.is_static body_a
     then space.spconstraints <- List.filter (fun c -> c != constr) space.spconstraints
   )
 
@@ -110,8 +110,8 @@ struct
       match root (Some body) with
         | None -> begin
           add rt body ;
-          Body.foreach_arbiter body (fun arb -> flood_fill rt (if body == arb.abody_a then arb.abody_b else arb.abody_a)) ;
-          Body.foreach_constraint body (fun constr -> flood_fill rt (if body == constr.ca then constr.cb else constr.ca)) ;
+          Body.foreach_arbiter body (fun arb -> flood_fill rt (if Body.eql body arb.abody_a then arb.abody_b else arb.abody_a)) ;
+          Body.foreach_constraint body (fun constr -> flood_fill rt (if Body.eql body constr.ca then constr.cb else constr.ca)) ;
         end
         | Some other_rt -> if other_rt != rt then Printf.eprintf "Internal Error : Inconstency detexted in the contact graph"
             

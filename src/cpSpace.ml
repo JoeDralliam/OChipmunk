@@ -21,7 +21,7 @@ let default_collision_handler =
 module ArbiterSet =
 struct
   let eql (a,b) arb =
-    (a == arb.aa && b == arb.ab) || (b == arb.aa && a == arb.ab)
+    (CpShape.eql a arb.aa && CpShape.eql b arb.ab) || (CpShape.eql b arb.aa && CpShape.eql a arb.ab)
 
   let trans (a,b) space =
     CpArbiter.make a b
@@ -44,7 +44,7 @@ end
 module HandlerSet =
 struct
   let eql pair check =
-    (check.cha == (fst pair) && check.chb == (snd pair)) || (check.chb == (fst pair) && check.cha == (snd pair))
+    (check.cha = (fst pair) && check.chb = (snd pair)) || (check.chb = (fst pair) && check.cha = (snd pair))
 
   let trans pair (beg,presol,postsol,sep) =
     { 
@@ -96,7 +96,6 @@ let make () =
 
     sparbiters = [] ;
 
-(*    spcontact_buffers_head = None ; *)
     spcached_arbiters = CpHashSet.make 0 ArbiterSet.eql ;
 
     spconstraints = [] ;
@@ -196,7 +195,7 @@ let add_static_shape space shape =
   assert_unlocked space;
   let body = shape.shbody in
   CpBody.add_shape body shape ;
-  CpShape.update shape body.bp body.brot ;
+  ignore (CpShape.update shape body.bp body.brot) ;
   CpSpatialIndex.insert space.spstatic_shapes shape (Int64.of_int shape.shhashid) ;
   shape.shspace <- Some space ;
   shape
@@ -211,7 +210,7 @@ let add_shape space shape =
 
     CpBody.activate body ;
     CpBody.add_shape body shape ;
-    CpShape.update shape body.bp body.brot ;
+    ignore (CpShape.update shape body.bp body.brot) ;
     CpSpatialIndex.insert space.spactive_shapes shape (Int64.of_int shape.shhashid) ;
     shape.shspace <- Some space ;
     shape
@@ -254,11 +253,11 @@ let filter_arbiters space body shape =
   let filter arb =
     let match_shape other = 
       match shape with 
-	| Some s  -> s == other
+	| Some s  -> CpShape.eql s other
 	| None -> true
     in
-    if (body == arb.abody_a && (match_shape arb.aa)) ||
-      (body == arb.abody_b && (match_shape arb.ab))
+    if (CpBody.eql body arb.abody_a && (match_shape arb.aa)) ||
+      (CpBody.eql body arb.abody_b && (match_shape arb.ab))
     then begin
       if shape <> None && arb.astate <> Cached
       then CpArbiter.call_separate arb space ;
@@ -430,8 +429,8 @@ let shape_query space shape func =
   let any_collision = ref false in
   let impl a b =
     if (a.shgroup = 0 || a.shgroup <> b.shgroup) &&
-      ((a.shlayers land b.shlayers) <> 0) &&
-      (a != b)
+      (a.shlayers land b.shlayers) <> 0 &&
+      not (CpShape.eql a b)
     then begin
       let contacts = 
         let a = Array.init max_contacts_per_arbiter (fun _ -> CpContact.make ()) in
@@ -511,7 +510,7 @@ let reindex_static space =
 let reindex_shape space shape =
   assert (space.splocked = 0) ;
   let body = shape.shbody in
-  CpShape.update shape body.bp body.brot ;
+  ignore (CpShape.update shape body.bp body.brot) ;
 
   CpSpatialIndex.reindex_object space.spactive_shapes shape (Int64.of_int shape.shhashid) ;
   CpSpatialIndex.reindex_object space.spstatic_shapes shape (Int64.of_int shape.shhashid)
@@ -586,7 +585,7 @@ let process_components space dt =
 let collide_shapes space a b =
   let query_reject a b =
     not (CpBB.intersects a.shbb b.shbb) 
-    || a.shbody == b.shbody
+    || CpBody.eql a.shbody b.shbody
     || (a.shgroup <> 0 && a.shgroup = b.shgroup)
     || (a.shlayers land b.shlayers) = 0
     || (a.shbody.bm = infinity  && b.shbody.bm = infinity)
@@ -636,19 +635,15 @@ let step space dt =
     let prev_dt = space.spcurr_dt in
     space.spcurr_dt <- dt ;
 
-    let bodies = space.spbodies in
-    let constraints = space.spconstraints in
-    let arbiters = space.sparbiters in
-
     List.iter (fun arb -> begin
       arb.astate <- Normal ;
       if not (CpBody.is_sleeping arb.abody_a) && not (CpBody.is_sleeping arb.abody_b)
       then CpArbiter.unthread arb
-    end ) arbiters ;
+    end ) space.sparbiters ;
     space.sparbiters <- [] ; (* ?? *)
 
     lock space ;
-    List.iter (fun body -> body.bposition_func body dt) bodies ;
+    List.iter (fun body -> body.bposition_func body dt) space.spbodies ;
     CpContactBuffer.push_fresh space ;
     CpSpatialIndex.each space.spactive_shapes 
       (fun shape -> let body = shape.shbody in ignore (CpShape.update shape body.bp body.brot));
@@ -661,29 +656,29 @@ let step space dt =
     CpHashSet.filter space.spcached_arbiters (ArbiterSet.filter space) ;
     let slop = space.spcollision_slop in
     let bias_coef = 1. -. (space.spcollision_bias ** dt) in
-    List.iter (fun arb -> CpArbiter.prestep arb dt slop bias_coef) arbiters ;
-    List.iter (fun con -> assert false) constraints ;
+    List.iter (fun arb -> CpArbiter.prestep arb dt slop bias_coef) space.sparbiters ;
+    List.iter (fun con -> assert false) space.spconstraints ;
 
     let damping = space.spdamping ** dt in
     let gravity = space.spgravity in
-    List.iter (fun body -> body.bvelocity_func body gravity damping dt) bodies ;
+    List.iter (fun body -> body.bvelocity_func body gravity damping dt) space.spbodies ;
 
     let dt_coef = (if prev_dt = 0. then 0. else dt /. prev_dt) in
-    List.iter (fun arb -> CpArbiter.apply_cached_impulse arb dt_coef) arbiters ;
+    List.iter (fun arb -> CpArbiter.apply_cached_impulse arb dt_coef) space.sparbiters ;
 
-    List.iter (fun con -> assert false) constraints ;
+    List.iter (fun con -> assert false) space.spconstraints ;
    
     for i=0 to (space.spiterations - 1)
     do
-      List.iter (fun arb -> CpArbiter.apply_impulse arb) arbiters ;
-      List.iter (fun con -> assert false) constraints
+      List.iter (fun arb -> CpArbiter.apply_impulse arb) space.sparbiters ;
+      List.iter (fun con -> assert false) space.spconstraints
     done ;
 
-    List.iter (fun con -> assert false) constraints ;
+    List.iter (fun con -> assert false) space.spconstraints ;
 
     List.iter (fun arb -> 
       let handler = CpOption.(!?(arb.ahandler)) in
-      handler.chpostsolve arb space) arbiters ;
+      handler.chpostsolve arb space) space.sparbiters ;
     unlock space true
 
   end

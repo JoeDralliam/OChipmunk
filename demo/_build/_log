@@ -1,0 +1,56 @@
+### Starting build.
+# Target: demo.ml.depends, tags: { extension:ml, file:demo.ml, ocaml, ocamldep, package(OChipmunk), package(ocsfml.graphics), package(str), quiet, traverse }
+/usr/local/bin/ocamlfind ocamldep -package OChipmunk -package ocsfml.graphics -package str -modules demo.ml > demo.ml.depends
+# Target: oChipmunkDemo.ml.depends, tags: { extension:ml, file:oChipmunkDemo.ml, ocaml, ocamldep, package(OChipmunk), package(ocsfml.graphics), package(str), quiet, traverse }
+/usr/local/bin/ocamlfind ocamldep -package OChipmunk -package ocsfml.graphics -package str -modules oChipmunkDemo.ml > oChipmunkDemo.ml.depends
+# Target: oChipmunkDebugDraw.ml.depends, tags: { extension:ml, file:oChipmunkDebugDraw.ml, ocaml, ocamldep, package(OChipmunk), package(ocsfml.graphics), package(str), quiet, traverse }
+/usr/local/bin/ocamlfind ocamldep -package OChipmunk -package ocsfml.graphics -package str -modules oChipmunkDebugDraw.ml > oChipmunkDebugDraw.ml.depends
+# Target: oChipmunkDebugDraw.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:oChipmunkDebugDraw.cmo, file:oChipmunkDebugDraw.ml, implem, ocaml, package(OChipmunk), package(ocsfml.graphics), package(str), quiet, traverse }
+/usr/local/bin/ocamlfind ocamlc -c -package OChipmunk -package ocsfml.graphics -package str -o oChipmunkDebugDraw.cmo oChipmunkDebugDraw.ml
+# Target: planet.ml.depends, tags: { extension:ml, file:planet.ml, ocaml, ocamldep, package(OChipmunk), package(ocsfml.graphics), package(str), quiet, traverse }
+/usr/local/bin/ocamlfind ocamldep -package OChipmunk -package ocsfml.graphics -package str -modules planet.ml > planet.ml.depends
+# Target: oChipmunkDemo.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:oChipmunkDemo.cmo, file:oChipmunkDemo.ml, implem, ocaml, package(OChipmunk), package(ocsfml.graphics), package(str), quiet, traverse }
+/usr/local/bin/ocamlfind ocamlc -c -package OChipmunk -package ocsfml.graphics -package str -o oChipmunkDemo.cmo oChipmunkDemo.ml
+# Target: pyramidTopple.ml.depends, tags: { extension:ml, file:pyramidTopple.ml, ocaml, ocamldep, package(OChipmunk), package(ocsfml.graphics), package(str), quiet, traverse }
+/usr/local/bin/ocamlfind ocamldep -package OChipmunk -package ocsfml.graphics -package str -modules pyramidTopple.ml > pyramidTopple.ml.depends
+# Target: tumble.ml.depends, tags: { extension:ml, file:tumble.ml, ocaml, ocamldep, package(OChipmunk), package(ocsfml.graphics), package(str), quiet, traverse }
+/usr/local/bin/ocamlfind ocamldep -package OChipmunk -package ocsfml.graphics -package str -modules tumble.ml > tumble.ml.depends
+# Target: planet.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:planet.cmo, file:planet.ml, implem, ocaml, package(OChipmunk), package(ocsfml.graphics), package(str), quiet, traverse }
+/usr/local/bin/ocamlfind ocamlc -c -package OChipmunk -package ocsfml.graphics -package str -o planet.cmo planet.ml
++ /usr/local/bin/ocamlfind ocamlc -c -package OChipmunk -package ocsfml.graphics -package str -o planet.cmo planet.ml
+File "planet.ml", line 30, characters 10-15:
+Warning 26: unused variable verts.
+# Target: pyramidTopple.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:pyramidTopple.cmo, file:pyramidTopple.ml, implem, ocaml, package(OChipmunk), package(ocsfml.graphics), package(str), quiet, traverse }
+/usr/local/bin/ocamlfind ocamlc -c -package OChipmunk -package ocsfml.graphics -package str -o pyramidTopple.cmo pyramidTopple.ml
++ /usr/local/bin/ocamlfind ocamlc -c -package OChipmunk -package ocsfml.graphics -package str -o pyramidTopple.cmo pyramidTopple.ml
+File "pyramidTopple.ml", line 18, characters 2-31:
+Warning 10: this expression should have type unit.
+File "pyramidTopple.ml", line 35, characters 4-33:
+Warning 10: this expression should have type unit.
+# Target: tumble.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:tumble.cmo, file:tumble.ml, implem, ocaml, package(OChipmunk), package(ocsfml.graphics), package(str), quiet, traverse }
+/usr/local/bin/ocamlfind ocamlc -c -package OChipmunk -package ocsfml.graphics -package str -o tumble.cmo tumble.ml
+# Target: demo.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:demo.cmo, file:demo.ml, implem, ocaml, package(OChipmunk), package(ocsfml.graphics), package(str), quiet, traverse }
+/usr/local/bin/ocamlfind ocamlc -c -package OChipmunk -package ocsfml.graphics -package str -o demo.cmo demo.ml
+# Target: oChipmunkDebugDraw.cmx, tags: { compile, extension:cmx, extension:ml, file:oChipmunkDebugDraw.cmx, file:oChipmunkDebugDraw.ml, implem, native, ocaml, package(OChipmunk), package(ocsfml.graphics), package(str), quiet, traverse }
+/usr/local/bin/ocamlfind ocamlopt -c -package OChipmunk -package ocsfml.graphics -package str -o oChipmunkDebugDraw.cmx oChipmunkDebugDraw.ml
+# Target: oChipmunkDemo.cmx, tags: { compile, extension:cmx, extension:ml, file:oChipmunkDemo.cmx, file:oChipmunkDemo.ml, implem, native, ocaml, package(OChipmunk), package(ocsfml.graphics), package(str), quiet, traverse }
+/usr/local/bin/ocamlfind ocamlopt -c -package OChipmunk -package ocsfml.graphics -package str -o oChipmunkDemo.cmx oChipmunkDemo.ml
+# Target: planet.cmx, tags: { compile, extension:cmx, extension:ml, file:planet.cmx, file:planet.ml, implem, native, ocaml, package(OChipmunk), package(ocsfml.graphics), package(str), quiet, traverse }
+/usr/local/bin/ocamlfind ocamlopt -c -package OChipmunk -package ocsfml.graphics -package str -o planet.cmx planet.ml
++ /usr/local/bin/ocamlfind ocamlopt -c -package OChipmunk -package ocsfml.graphics -package str -o planet.cmx planet.ml
+File "planet.ml", line 30, characters 10-15:
+Warning 26: unused variable verts.
+# Target: pyramidTopple.cmx, tags: { compile, extension:cmx, extension:ml, file:pyramidTopple.cmx, file:pyramidTopple.ml, implem, native, ocaml, package(OChipmunk), package(ocsfml.graphics), package(str), quiet, traverse }
+/usr/local/bin/ocamlfind ocamlopt -c -package OChipmunk -package ocsfml.graphics -package str -o pyramidTopple.cmx pyramidTopple.ml
++ /usr/local/bin/ocamlfind ocamlopt -c -package OChipmunk -package ocsfml.graphics -package str -o pyramidTopple.cmx pyramidTopple.ml
+File "pyramidTopple.ml", line 18, characters 2-31:
+Warning 10: this expression should have type unit.
+File "pyramidTopple.ml", line 35, characters 4-33:
+Warning 10: this expression should have type unit.
+# Target: tumble.cmx, tags: { compile, extension:cmx, extension:ml, file:tumble.cmx, file:tumble.ml, implem, native, ocaml, package(OChipmunk), package(ocsfml.graphics), package(str), quiet, traverse }
+/usr/local/bin/ocamlfind ocamlopt -c -package OChipmunk -package ocsfml.graphics -package str -o tumble.cmx tumble.ml
+# Target: demo.cmx, tags: { compile, extension:cmx, extension:ml, file:demo.cmx, file:demo.ml, implem, native, ocaml, package(OChipmunk), package(ocsfml.graphics), package(str), quiet, traverse }
+/usr/local/bin/ocamlfind ocamlopt -c -package OChipmunk -package ocsfml.graphics -package str -o demo.cmx demo.ml
+# Target: demo.native, tags: { dont_link_with, extension:native, file:demo.native, link, native, ocaml, package(OChipmunk), package(ocsfml.graphics), package(str), program, quiet, traverse }
+/usr/local/bin/ocamlfind ocamlopt -linkpkg -package OChipmunk -package ocsfml.graphics -package str oChipmunkDebugDraw.cmx oChipmunkDemo.cmx planet.cmx pyramidTopple.cmx tumble.cmx demo.cmx -o demo.native
+# Compilation successful.

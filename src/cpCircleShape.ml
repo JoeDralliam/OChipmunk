@@ -19,8 +19,7 @@ let nearest_point_query circle shape p =
       d = d -. circle.r
     })
 
-let circle_segment_query shape center r a b = 
-  let blank = CpSegmentQueryInfo.({ shape = None ; t = 0. ; n = CpVector.zero }) in
+let circle_segment_query shape center r a b default = 
   let open CpVector in
       let a = sub a center in
       let b = sub b center in
@@ -34,12 +33,13 @@ let circle_segment_query shape center r a b =
 	let t = (-. qb -. (sqrt det)) /. (2. *. qa) in
 	if 0. <= t && t <= 1. 
 	then  CpSegmentQueryInfo.({ shape = Some shape ; t ; n = normalize (lerp a b t) })
-	else blank
-      else blank
+	else default
+      else default
         
         
 let segment_query circle shape a b =
-  circle_segment_query shape circle.tc circle.r a b
+  let blank = CpSegmentQueryInfo.({ shape = None ; t = 0. ; n = CpVector.zero }) in
+  circle_segment_query shape circle.tc circle.r a b blank
     
 let make radius offset =
   { c = offset ; tc = CpVector.zero ; r = radius }

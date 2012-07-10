@@ -1,0 +1,1 @@
+<*.{ml,byte,native}> : package(ocsfml.graphics), package(OChipmunk), package(str)
