@@ -48,6 +48,8 @@ let set_layers shape v =
   CpBody.activate shape.shbody ;
   shape.shlayers <- v
 
+let get_body shape = shape.shbody
+
 let no_group = 0
 let all_layers = lnot 0
 

@@ -36,8 +36,7 @@ object
       let radius = CpVector.(length (make size size)) in
       let pos = rand_pos radius in
 
-      let body = CpSpace.add_body space (CpBody.make mass (Cp.moment_for_circle mass size size CpVector.zero)) in
-      (*      let body = CpSpace.add_body space (CpBody.make mass (Cp.moment_for_poly mass verts CpVector.zero)) in *)
+      let body = CpSpace.add_body space (CpBody.make mass (Cp.moment_for_poly mass verts CpVector.zero)) in
       body.bvelocity_func <- (fun body gravity damping dt ->
         let p = CpBody.get_pos body in
         let sqdist = CpVector.lengthsq p in
@@ -53,8 +52,7 @@ object
       CpBody.set_ang_vel body v ;
       CpBody.set_angle body (atan2 CpVector.(pos.y) CpVector.(pos.x)) ; 
 
-      let shape = CpSpace.add_shape space (CpShape.make_circle body size CpVector.zero) in
-(*      let shape = CpSpace.add_shape space (CpShape.make_poly body verts CpVector.zero) in *)
+      let shape = CpSpace.add_shape space (CpShape.make_poly body verts CpVector.zero) in
       CpShape.set_elasticity shape 0. ;
       CpShape.set_friction shape 0.7
     in

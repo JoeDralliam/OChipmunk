@@ -22,20 +22,20 @@ let length a =
   a.length
 
 let copy a =
-  { arr = Array.init (length a) (fun i -> a.arr.(i + a.offset) ) ; offset = 0 ; length = a.length}
+  { arr = Array.init (length a) (fun i -> (get a i) ) ; offset = 0 ; length = a.length}
 
 let memcpy dest src =
   Array.blit src.arr src.offset dest.arr dest.offset (length src)
 
 let iter func a =
   let sz = length a in
-  let rec impl i = if i < sz then ( func a.arr.(i) ; impl (i+1) )
-  in impl a.offset
+  let rec impl i = if i < sz then ( func (get a i) ; impl (i+1) )
+  in impl 0
 
 let iteri func a =
   let sz = length a in
-  let rec impl i = if i < sz then ( func i a.arr.(i) ; impl (i+1) )
-  in impl a.offset
+  let rec impl i = if i < sz then ( func i (get a i) ; impl (i+1) )
+  in impl 0
 
 let fold_left func init_val a =
   let sz = length a in
@@ -45,3 +45,9 @@ let fold_left func init_val a =
     else v
   in
   impl init_val 0
+
+let modify func a =
+  let sz = length a in
+  let rec impl i = if i < sz then (set a i (func (get a i)) ; impl (i+1) )
+  in impl 0
+  

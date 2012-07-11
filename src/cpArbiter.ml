@@ -150,12 +150,10 @@ let update arb contacts' handler' a' b' =
   let look_for_hash_value_match old =
     let modify_new_contact new_contact = CpContact.(
       if new_contact.hash = old.hash
-      then begin
-	new_contact.jn_acc <- old.jn_acc ;
-        new_contact.jt_acc <- old.jt_acc
-      end
+      then {new_contact with jn_acc = old.jn_acc ; jt_acc = old.jt_acc }
+      else new_contact
     ) in
-    CpArray.iter modify_new_contact contacts'
+    CpArray.modify modify_new_contact contacts'
   in
   CpArray.iter look_for_hash_value_match arb.acontacts ;
   arb.acontacts <- contacts' ;
@@ -175,17 +173,18 @@ let prestep arb dt slop bias =
   let a = arb.abody_a in
   let b = arb.abody_b in
 
-  CpArray.iter (fun con -> CpContact.(
-    con.r1 <- CpVector.sub con.p a.bp ;
-    con.r2 <- CpVector.sub con.p b.bp ;
+  CpArray.modify (fun con -> CpContact.(
+    let r1 = CpVector.sub con.p a.bp in
+    let r2 = CpVector.sub con.p b.bp in
     
-    con.n_mass <- 1. /. (CpConstraintUtils.k_scalar a b con.r1 con.r2 con.n) ;
-    con.t_mass <- 1. /. (CpConstraintUtils.k_scalar a b con.r1 con.r2 (CpVector.perp con.n)) ;
+    let n_mass = 1. /. (CpConstraintUtils.k_scalar a b r1 r2 con.n) in
+    let t_mass = 1. /. (CpConstraintUtils.k_scalar a b r1 r2 (CpVector.perp con.n)) in
     
-    con.bias <- -.bias *. (min 0. (con.dist +. slop)) /. dt ;
-    con.j_bias <- 0. ;
+    let bias = -.bias *. (min 0. (con.dist +. slop)) /. dt in
+    let j_bias = 0. in
     
-    con.bounce <- (CpConstraintUtils.normal_relative_velocity a b con.r1 con.r2 con.n) *. arb.ae
+    let bounce = (CpConstraintUtils.normal_relative_velocity a b r1 r2 con.n) *. arb.ae in
+    { con with r1 ; r2 ; n_mass ; t_mass ; bias ; j_bias ; bounce }
   ) ) arb.acontacts
 
 let apply_cached_impulse arb dt_coef =
@@ -203,7 +202,7 @@ let apply_impulse arb =
   let b = arb.abody_b in
   let surface_vr = arb.asurface_vr in
   let friction = arb.au in
-  CpArray.iter (fun con -> CpContact.(
+  CpArray.modify (fun con -> CpContact.(
     let n_mass = con.n_mass in
     let n = con.n in
     let r1 = con.r1 in
@@ -219,17 +218,18 @@ let apply_impulse arb =
 
     let jbn = (con.bias -. vbn) *. n_mass in
     let jbn_old = con.j_bias in
-    con.j_bias <- max (jbn_old +. jbn) 0. ;
+    let j_bias = max (jbn_old +. jbn) 0. in
 
     let jn = -.(con.bounce +. vrn) *. n_mass in
     let jn_old = con.jn_acc in
-    con.jn_acc <- max (jn_old +. jn) 0. ;
+    let jn_acc = max (jn_old +. jn) 0. in
 
     let jt_max = friction *. con.jn_acc in
     let jt = -.vrt *. con.t_mass in
     let jt_old = con.jt_acc in
-    con.jt_acc <- CpFloat.clamp (jt_old +. jt) (-.jt_max) (jt_max) ;
+    let jt_acc = CpFloat.clamp (jt_old +. jt) (-.jt_max) (jt_max) in
 
-    CpConstraintUtils.apply_bias_impulses a b r1 r2 (CpVector.mult n (con.j_bias -. jbn_old)) ;
-    CpConstraintUtils.apply_impulses a b r1 r2 CpVector.(rotate n (make (con.jn_acc -. jn_old) (con.jt_acc -. jt_old)))
+    CpConstraintUtils.apply_bias_impulses a b r1 r2 (CpVector.mult n (j_bias -. jbn_old)) ;
+    CpConstraintUtils.apply_impulses a b r1 r2 CpVector.(rotate n (make (jn_acc -. jn_old) (jt_acc -. jt_old))) ;
+      { con with j_bias ; jn_acc ; jt_acc }
   )) arb.acontacts

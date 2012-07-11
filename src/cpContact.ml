@@ -1,34 +1,30 @@
 type t =
     {
-      mutable p:CpVector.t ;
-      mutable n:CpVector.t ;
-      mutable dist:float ;
+      p:CpVector.t ;
+      n:CpVector.t ;
+      dist:float ;
 
-      mutable r1:CpVector.t ;
-      mutable r2:CpVector.t ;
-      mutable n_mass:float ;
-      mutable t_mass:float ;
-      mutable bounce:float ;
+      r1:CpVector.t ;
+      r2:CpVector.t ;
+      n_mass:float ;
+      t_mass:float ;
+      bounce:float ;
 
-      mutable jn_acc:float ;
-      mutable jt_acc:float ;
-      mutable j_bias:float ;
-      mutable bias:float ;
+      jn_acc:float ;
+      jt_acc:float ;
+      j_bias:float ;
+      bias:float ;
 
-      mutable hash:int64
+      hash:int64
     }
 
 let init con p n dist hash =
-  con.p <- p ;
-  con.n <- n ;
-  con.dist <- dist ;
-
-  con.jn_acc <- 0. ;
-  con.jt_acc <- 0. ;
-  con.j_bias <- 0. ;
-
-  con.hash <- hash ;
-  con
+  { 
+    con with 
+      p ; n ; dist ;
+      jn_acc = 0. ; jt_acc = 0. ; j_bias = 0. ; 
+      hash 
+  }
 
 let make () =
   { 

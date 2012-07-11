@@ -2,7 +2,10 @@ open OChipmunkDemo
 
 let _ =
   demos := [| 
+    ((new LogoSmash.logo_smash) :> demo) ;
+    ((new Plink.plink) :> demo) ;
     ((new Planet.planet) :> demo) ;
+    ((new PyramidStack.pyramid_stack) :> demo) ;
     ((new PyramidTopple.pyramid_topple) :> demo) ;
     ((new Tumble.tumble) :> demo)
            |] ;
