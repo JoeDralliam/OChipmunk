@@ -1,4 +1,12 @@
-open CpType
+module Make = functor (Param : CpType.UserData) ->
+struct
+  module Type = CpType.Make(Param)
+  module Private = CpPrivate.Make(Param)
+  open Type
+
+
+let j_max con dt =
+  con.cmax_force *. dt
 
 let relative_velocity a b r1 r2 =
   let v1_sum = CpVector.(add a.bv (mult (perp r1) a.bw)) in
@@ -30,7 +38,7 @@ let k_scalar_body body r n =
 
 let k_scalar a b r1 r2 n =
   let res = (k_scalar_body a r1 n) +. (k_scalar_body b r2 n) in
-  CpPrivate.assert_soft (res <> 0.) "Unsolvable collision or constraint." ;
+  Private.assert_soft (res <> 0.) "Unsolvable collision or constraint." ;
   res
 
 let k_tensor a b r1 r2 =
@@ -66,3 +74,5 @@ let mult_k vr k1 k2 =
 
 let bias_coef error_bias dt =
   1. -. (error_bias ** dt)
+
+end

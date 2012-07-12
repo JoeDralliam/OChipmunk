@@ -1,4 +1,8 @@
 open CpShapeType.CircleImpl
+module Make = functor (Param : CpType.UserData) ->
+struct
+  module NearestPointQueryInfo = CpNearestPointQueryInfo.Make(Param)
+  module SegmentQueryInfo = CpSegmentQueryInfo.Make(Param)
 
 let get_offset circle _ = 
   circle.c
@@ -13,7 +17,7 @@ let cache_data circle _ p rot =
 let nearest_point_query circle shape p =
     let delta = CpVector.sub p circle.tc in
     let d = CpVector.length delta in
-    CpNearestPointQueryInfo.({
+    NearestPointQueryInfo.({
       shape = Some shape ;
       p = CpVector.(add circle.tc (mult delta (circle.r /. d))) ;
       d = d -. circle.r
@@ -32,14 +36,15 @@ let circle_segment_query shape center r a b default =
       then 
 	let t = (-. qb -. (sqrt det)) /. (2. *. qa) in
 	if 0. <= t && t <= 1. 
-	then  CpSegmentQueryInfo.({ shape = Some shape ; t ; n = normalize (lerp a b t) })
+	then  SegmentQueryInfo.({ shape = Some shape ; t ; n = normalize (lerp a b t) })
 	else default
       else default
         
         
 let segment_query circle shape a b =
-  let blank = CpSegmentQueryInfo.({ shape = None ; t = 0. ; n = CpVector.zero }) in
+  let blank = SegmentQueryInfo.({ shape = None ; t = 0. ; n = CpVector.zero }) in
   circle_segment_query shape circle.tc circle.r a b blank
     
 let make radius offset =
   { c = offset ; tc = CpVector.zero ; r = radius }
+end

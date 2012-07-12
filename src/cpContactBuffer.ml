@@ -1,10 +1,13 @@
-open CpType
-open ContactBuffer
-type t = ContactBuffer.t
+module Make = functor (Param : CpType.UserData) ->
+struct
+  module Type = CpType.Make(Param)
+  open Type
+  open ContactBufferType
+  type t = ContactBufferType.t
 
-let size = 500
+  let size = 500
 
-let make stamp splice =
+  let make stamp splice =
   let rec buffer =
     {
       stamp ;
@@ -57,3 +60,4 @@ let push_contacts space count =
 let pop_contacts space count =
   let head = CpOption.(!?(space.spcontact_buffers_head)) in
   head.num_contacts <- head.num_contacts - count
+end

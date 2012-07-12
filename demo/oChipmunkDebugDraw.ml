@@ -1,5 +1,5 @@
 open OcsfmlGraphics
-open CpType
+open Cp.Type
 
 let la_color l alpha = Color.rgba l l l alpha
 
@@ -35,11 +35,11 @@ let color_from_hash hash alpha =
        Color.rgba ((r - mn) * coef) ((g - mn) * coef) ((b - mn) * coef) alpha
 
 let color_for_shape shape =
-  if CpShape.get_sensor shape
+  if Cp.Shape.get_sensor shape
   then la_color 255 0
   else begin
     let body = shape.shbody in
-    if CpBody.is_sleeping body
+    if Cp.Body.is_sleeping body
     then la_color 51 255
     else if ComponentNode.(body.bnode.idle_time) > CpOption.(!?(shape.shspace).spsleep_time_threshold)
     then la_color 170 250
@@ -47,7 +47,7 @@ let color_for_shape shape =
   end 
 
 let draw_circle (target:#render_target) center angle radius line_color fill_color =
-  let circle = CpVector.(new circle_shape 
+  let circle = Cp.Vector.(new circle_shape 
                            ~position:(center.x,center.y) 
                            ~origin:(radius,radius)
                            ~rotation:angle 
@@ -57,13 +57,13 @@ let draw_circle (target:#render_target) center angle radius line_color fill_colo
   target#draw circle
 
 let draw_segment (target:#render_target) a b color =
-  let points = CpVector.([ mk_vertex ~position:(a.x,a.y) ~color () ; mk_vertex ~position:(b.x,b.y) ~color () ]) in
+  let points = Cp.Vector.([ mk_vertex ~position:(a.x,a.y) ~color () ; mk_vertex ~position:(b.x,b.y) ~color () ]) in
   let segment = new vertex_array ~primitive_type:Lines points in
   target#draw segment
 
 let draw_fat_segment (target:#render_target) a b radius outline_color fill_color =
   if radius <> 0.
-  then CpVector.(
+  then Cp.Vector.(
     let position = (a.x,a.y) in
     let size = (dist a b, radius) in
     let rotation = toangle (sub b a) in
@@ -75,7 +75,7 @@ let draw_fat_segment (target:#render_target) a b radius outline_color fill_color
 
 let draw_polygon (target:#render_target) verts outline_color fill_color =
   let lgth = Array.length verts in
-  let to_sf_point v = CpVector.(v.x,v.y) in
+  let to_sf_point v = Cp.Vector.(v.x,v.y) in
   let rec to_sf_point_list idx =
     if idx < lgth
     then (to_sf_point verts.(idx)) :: (to_sf_point_list (idx+1))
@@ -87,7 +87,7 @@ let shp = new convex_shape ~points ~outline_color ~fill_color () in
 
 let draw_points (target:#render_target) size verts color =
   let lgth = Array.length verts in
-  let to_sf_vertex v = mk_vertex ~position:CpVector.(v.x,v.y) ~color () in
+  let to_sf_vertex v = mk_vertex ~position:Cp.Vector.(v.x,v.y) ~color () in
   let rec to_sf_vertex_list idx =
     if idx < lgth
     then (to_sf_vertex verts.(idx)) :: (to_sf_vertex_list (idx+1))
@@ -98,27 +98,27 @@ let draw_points (target:#render_target) size verts color =
   target#draw vtx_arr
 
 let draw_bb (target:#render_target) bb color =
-  let position = CpBB.(bb.l,bb.t) in 
-  let size = CpBB.(bb.r -. bb.l, bb.b -. bb.t) in
+  let position = Cp.BB.(bb.l,bb.t) in 
+  let size = Cp.BB.(bb.r -. bb.l, bb.b -. bb.t) in
   let shp = new rectangle_shape ~position ~size ~fill_color:color () in
   target#draw shp
 
 let draw_shape target shape =
-  let module Circle  = CpShapeType.CircleImpl    in
-  let module Segment = CpShapeType.SegmentImpl   in
-  let module Poly    = CpShapeType.PolyShapeImpl in
+  let module Circle  = Cp.ShapeType.CircleImpl    in
+  let module Segment = Cp.ShapeType.SegmentImpl   in
+  let module Poly    = Cp.ShapeType.PolyShapeImpl in
   let body = shape.shbody in
   let color = color_for_shape shape in
   match shape.shstrategy with
-    | CpShapeType.Circle c -> 
+    | Cp.ShapeType.Circle c -> 
         Circle.(draw_circle target c.tc body.ba c.r line_color color)
-    | CpShapeType.Segment s -> 
+    | Cp.ShapeType.Segment s -> 
         Segment.(draw_fat_segment target s.ta s.tb s.r line_color color)
-    | CpShapeType.Poly p ->
+    | Cp.ShapeType.Poly p ->
         Poly.(draw_polygon target p.t_verts line_color color)
 
 let draw_shapes target space =
-  CpSpace.each_shape space (draw_shape target)
+  Cp.Space.each_shape space (draw_shape target)
 
 
 let draw_collision_points (target:#render_target) space =
@@ -128,8 +128,8 @@ let draw_collision_points (target:#render_target) space =
   let origin = (radius, radius) in
   List.iter (fun arb ->
     CpArray.iter (fun contact ->
-      let v = CpContact.(contact.p) in
-      let position = CpVector.(v.x,v.y) in
+      let v = Cp.Contact.(contact.p) in
+      let position = Cp.Vector.(v.x,v.y) in
       let point = new circle_shape ~position ~radius ~origin ~fill_color () in
       target#draw point
     ) arb.acontacts

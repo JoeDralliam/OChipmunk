@@ -1,5 +1,7 @@
 # OASIS_START
-# DO NOT EDIT (digest: 56ad873d2ebc6cdb5b032d23af1c4810)
+# DO NOT EDIT (digest: d0473c9d4cfe2237b8ef2afb9be3dfb9)
+OChipmunk
+Ochipmunk
 CpArbiter
 CpBB
 CpBody
@@ -16,7 +18,6 @@ CpShapeType
 CpType
 CpSpace
 CpVector
-Ochipmunk
 CpArbiterThread
 CpArray
 CpBBTree
@@ -33,4 +34,14 @@ CpSpatialIndex
 CpSpatialIndexType
 CpSplittingPlane
 Prime
+CpPinJoint
+CpPivotJoint
+CpGrooveJoint
+CpDampedSpring
+CpDampedRotarySpring
+CpRotaryLimitJoint
+CpSlideJoint
+CpRatchetJoint
+CpGearJoint
+CpSimpleMotor
 # OASIS_STOP

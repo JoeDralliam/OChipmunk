@@ -1,22 +1,22 @@
 open OcsfmlWindow
 open OcsfmlGraphics
-open CpType
+open Cp.Type
 
 class virtual demo (n:string) =
 object
   method name = n
-  method virtual init : CpSpace.t
-  method virtual update : int -> CpSpace.t -> unit
-  method virtual draw : render_window -> CpSpace.t -> unit
+  method virtual init : Cp.Space.t
+  method virtual update : int -> Cp.Space.t -> unit
+  method virtual draw : render_window -> Cp.Space.t -> unit
   method virtual destroy : unit
 end
 
 
 let time = ref 0.
-let mouse = ref CpVector.zero
+let mouse = ref Cp.Vector.zero
 let right_click = ref false
 let message_string = ref ""
-let keyboard = ref CpVector.zero
+let keyboard = ref Cp.Vector.zero
 let demos : demo array ref = ref [||]
 
 let width = 640
@@ -32,12 +32,12 @@ type t =
       mutable paused          :bool       ;
       mutable step            :bool       ;
       mutable draw_bbs        :bool       ;
-              space           :CpSpace.t  ;
+              space           :Cp.Space.t  ;
       mutable ticks           :int        ;
       
-      mutable mouse_body      :CpBody.t ;
-      (*  mutable mouse_joint     :CpConstraint.t option ; 
-      *)
+      mutable mouse_body      :Cp.Body.t ;
+      mutable mouse_joint     :Cp.Constraint.t option ; 
+
       mutable key_up          :bool       ;
       mutable key_down        :bool       ;
       mutable key_left        :bool       ;
@@ -87,7 +87,7 @@ let draw_info info =
   let ke_calc = fun ke body -> 
     if body.bm = infinity || body.bi = infinity
     then ke
-    else ke +. body.bm*.CpVector.dot body.bv body.bv +. body.bi *. body.bw *. body.bw
+    else ke +. body.bm*.Cp.Vector.dot body.bv body.bv +. body.bi *. body.bw *. body.bw
   in
   let ke = List.fold_left ke_calc 0. bodies in
   let buffer = Printf.sprintf "Arbiters: %d (%d) - Contact Ponts: %d (%d)\nOther constraints: %d, Iterations: %d\nConstraints x Iteration: %d (%d)Time:%5.2fs, KE:%5.2e"
@@ -128,8 +128,8 @@ let display info =
 
   if not info.paused || info.step
   then begin
-    let new_point = CpVector.lerp info.mouse_body.bp !mouse 0.25 in
-    info.mouse_body.bv <- CpVector.(mult (sub new_point info.mouse_body.bp) 60.) ;
+    let new_point = Cp.Vector.lerp info.mouse_body.bp !mouse 0.25 in
+    info.mouse_body.bv <- Cp.Vector.(mult (sub new_point info.mouse_body.bp) 60.) ;
     info.mouse_body.bp <- new_point ;
 
     !demos.(info.demo_index)#update info.ticks info.space ;
@@ -138,7 +138,7 @@ let display info =
     info.step <- false
   end ;
   
-  if info.draw_bbs then CpSpace.each_shape info.space (draw_shape_bb info) ;
+  if info.draw_bbs then Cp.Space.each_shape info.space (draw_shape_bb info) ;
   
   target#set_view info.info_view ;
   draw_instructions target ;
@@ -162,7 +162,8 @@ let run_demo index target =
     draw_bbs        = false ;
     space           = !demos.(index)#init  ;
     ticks           = 0     ;
-    mouse_body      = CpBody.make infinity infinity ; 
+    mouse_body      = Cp.Body.make infinity infinity ; 
+    mouse_joint     = None  ;
     key_up          = false ;
     key_down        = false ;
     key_left        = false ;
@@ -251,25 +252,42 @@ let key_pressed info key =
 
 let mouse_to_space info x y =
   let (xc,yc) = info.target#convert_coords (x,y) in
-  CpVector.make xc yc
+  Cp.Vector.make xc yc
 
 let mouse info x y =
   mouse := mouse_to_space info x y
 
 let pressed info button x y =
   match button with
+    | Event.LeftButton -> begin
+        let point = mouse_to_space info x y in
+        let sh = Cp.Space.point_query_first info.space point grabable_mask_bit Cp.Shape.no_group in
+        match sh with
+          | Some shape -> begin
+            let body = shape.shbody in
+            let joint = Cp.PivotJoint.make2 info.mouse_body body Cp.Vector.zero (Cp.Body.world2local body point) in
+            joint.cmax_force <- 50000. ;
+            joint.cerror_bias <- (1. -. 0.15) ** 60. ;
+            info.mouse_joint <- Some (Cp.Space.add_constraint info.space joint)
+          end
+          | _ -> ()
+    end
     | Event.RightButton -> right_click := true
     | _ -> ()
 
 let released info button x y =
   match button with
+    | Event.LeftButton -> CpOption.do_if (fun con -> begin
+      Cp.Space.remove_constraint info.space con ;
+      info.mouse_joint <- None
+    end) info.mouse_joint
     | Event.RightButton -> right_click := false
     | _ -> ()
 
 let set_arrow_direction info =
   let x = (if info.key_right then 1. else 0.) -. (if info.key_left then 1. else 0.) in
   let y = (if info.key_down  then 1. else 0.) -. (if info.key_up   then 1. else 0.) in
-  keyboard := CpVector.make x y
+  keyboard := Cp.Vector.make x y
 
 let arrow_key_pressed info key =
   KeyCode.(

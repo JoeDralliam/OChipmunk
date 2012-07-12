@@ -1,5 +1,4 @@
 open OChipmunkDemo
-open Ochipmunk
 open OcsfmlGraphics
 
 let image_width = 188
@@ -46,12 +45,12 @@ let get_pixel x y =
   (image_bitmap.( (x lsr 3) + y * image_row_length ) lsr (- x land 0x7)) land 1
 
 let make_ball x y =
-  let body = CpBody.make 1. infinity in
-  CpBody.set_pos body (CpVector.make x y) ;
+  let body = Cp.Body.make 1. infinity in
+  Cp.Body.set_pos body (Cp.Vector.make x y) ;
 
-  let shape = CpShape.make_circle body 0.95 CpVector.zero in
-  CpShape.set_elasticity shape 0. ;
-  CpShape.set_friction shape 0. ;
+  let shape = Cp.Shape.make_circle body 0.95 Cp.Vector.zero in
+  Cp.Shape.set_elasticity shape 0. ;
+  Cp.Shape.set_friction shape 0. ;
   shape
 
 class logo_smash =
@@ -62,9 +61,9 @@ object
 
 
   method init =
-    let space = CpSpace.make () in
-    CpSpace.set_iterations space 1 ;
-    CpSpace.use_spatial_hash space 2. 10000 ;
+    let space = Cp.Space.make () in
+    Cp.Space.set_iterations space 1 ;
+    Cp.Space.use_spatial_hash space 2. 10000 ;
 
 
     body_count <- 0 ;
@@ -81,21 +80,21 @@ object
             (2.*.(float (x - image_width /2) +. x_jitter))
             (2.*.(float (y - image_height/2) -. y_jitter))
           in
-          CpSpace.add_body space (CpShape.get_body shape) ;
-          CpSpace.add_shape space shape ;
+          Cp.Space.add_body space (Cp.Shape.get_body shape) ;
+          Cp.Space.add_shape space shape ;
           body_count <- body_count + 1
         end
       done
     done ;
 
-    let body = CpSpace.add_body space (CpBody.make infinity infinity) in
-    CpBody.set_pos body (CpVector.make (-.1000.) 10.) ;
-    CpBody.set_vel body (CpVector.make 400. 0.) ;
+    let body = Cp.Space.add_body space (Cp.Body.make infinity infinity) in
+    Cp.Body.set_pos body (Cp.Vector.make (-.1000.) 10.) ;
+    Cp.Body.set_vel body (Cp.Vector.make 400. 0.) ;
 
-    let shape = CpSpace.add_shape space (CpShape.make_circle body 8. CpVector.zero) in
-    CpShape.set_elasticity shape 0. ;
-    CpShape.set_friction shape 0. ;
-    CpShape.set_layers shape not_grabable_mask ;
+    let shape = Cp.Space.add_shape space (Cp.Shape.make_circle body 8. Cp.Vector.zero) in
+    Cp.Shape.set_elasticity shape 0. ;
+    Cp.Shape.set_friction shape 0. ;
+    Cp.Shape.set_layers shape not_grabable_mask ;
     body_count <- body_count + 1 ;
     space
 
@@ -103,13 +102,13 @@ object
     let steps = 1 in
     let dt = 1./.60./. float steps in
     for i = 0 to steps - 1
-    do CpSpace.step space dt done
+    do Cp.Space.step space dt done
 
   method draw target space =
     let cursor = ref 0 in
-    let verts = Array.make body_count CpVector.zero in
-    CpSpace.each_body space (fun body -> begin
-      verts.(!cursor) <- CpBody.get_pos body ;
+    let verts = Array.make body_count Cp.Vector.zero in
+    Cp.Space.each_body space (fun body -> begin
+      verts.(!cursor) <- Cp.Body.get_pos body ;
       incr cursor
     end) ;
     OChipmunkDebugDraw.draw_points target 3 verts (Color.rgba 200 210 230 255) ;

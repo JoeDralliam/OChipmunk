@@ -1,42 +1,42 @@
 open OChipmunkDemo
-open Ochipmunk
+
 
 class tumble =
 object
   inherit demo "Tumble"
 
-  val rogue_box_body = CpBody.make infinity infinity
+  val rogue_box_body = Cp.Body.make infinity infinity
 
   method init =
-    let space = CpSpace.make () in
-    CpSpace.set_gravity space (CpVector.make 0. 600.) ;
-    CpBody.set_ang_vel rogue_box_body 0.4 ;
+    let space = Cp.Space.make () in
+    Cp.Space.set_gravity space (Cp.Vector.make 0. 600.) ;
+    Cp.Body.set_ang_vel rogue_box_body 0.4 ;
 
-    let a = CpVector.make (-.200.) 200. in
-    let b = CpVector.make (-.200.) (-.200.) in
-    let c = CpVector.make 200. (-.200.) in
-    let d = CpVector.make 200. 200. in
+    let a = Cp.Vector.make (-.200.) 200. in
+    let b = Cp.Vector.make (-.200.) (-.200.) in
+    let c = Cp.Vector.make 200. (-.200.) in
+    let d = Cp.Vector.make 200. 200. in
 
 
-    let shape = CpSpace.add_shape space (CpShape.make_segment rogue_box_body a b 0.) in
-    CpShape.set_elasticity shape 1. ;
-    CpShape.set_friction shape 1. ;
-    CpShape.set_layers shape not_grabable_mask ;
+    let shape = Cp.Space.add_shape space (Cp.Shape.make_segment rogue_box_body a b 0.) in
+    Cp.Shape.set_elasticity shape 1. ;
+    Cp.Shape.set_friction shape 1. ;
+    Cp.Shape.set_layers shape not_grabable_mask ;
 
-    let shape = CpSpace.add_shape space (CpShape.make_segment rogue_box_body b c 0.) in
-    CpShape.set_elasticity shape 1. ;
-    CpShape.set_friction shape 1. ;
-    CpShape.set_layers shape not_grabable_mask ;
+    let shape = Cp.Space.add_shape space (Cp.Shape.make_segment rogue_box_body b c 0.) in
+    Cp.Shape.set_elasticity shape 1. ;
+    Cp.Shape.set_friction shape 1. ;
+    Cp.Shape.set_layers shape not_grabable_mask ;
 
-    let shape = CpSpace.add_shape space (CpShape.make_segment rogue_box_body c d 0.) in
-    CpShape.set_elasticity shape 1. ;
-    CpShape.set_friction shape 1. ;
-    CpShape.set_layers shape not_grabable_mask ;
+    let shape = Cp.Space.add_shape space (Cp.Shape.make_segment rogue_box_body c d 0.) in
+    Cp.Shape.set_elasticity shape 1. ;
+    Cp.Shape.set_friction shape 1. ;
+    Cp.Shape.set_layers shape not_grabable_mask ;
 
-    let shape = CpSpace.add_shape space (CpShape.make_segment rogue_box_body d a 0.) in
-    CpShape.set_elasticity shape 1. ;
-    CpShape.set_friction shape 1. ;
-    CpShape.set_layers shape not_grabable_mask ;
+    let shape = Cp.Space.add_shape space (Cp.Shape.make_segment rogue_box_body d a 0.) in
+    Cp.Shape.set_elasticity shape 1. ;
+    Cp.Shape.set_friction shape 1. ;
+    Cp.Shape.set_layers shape not_grabable_mask ;
 
     let mass = 1. in
     let width = 60. in
@@ -46,11 +46,11 @@ object
     do
       for j=0 to 6
       do
-        let body = CpSpace.add_body space (CpBody.make mass (Cp.moment_for_box mass width height)) in
-        CpBody.set_pos body (CpVector.make (float (i*60 - 150)) (-.float (j*30 - 150))) ;
-        let shape = CpSpace.add_shape space (CpShape.make_box body width height) in
-        CpShape.set_elasticity shape 0. ;
-        CpShape.set_friction shape 0.7 ;        
+        let body = Cp.Space.add_body space (Cp.Body.make mass (Ochipmunk.Cp.moment_for_box mass width height)) in
+        Cp.Body.set_pos body (Cp.Vector.make (float (i*60 - 150)) (-.float (j*30 - 150))) ;
+        let shape = Cp.Space.add_shape space (Cp.Shape.make_box body width height) in
+        Cp.Shape.set_elasticity shape 0. ;
+        Cp.Shape.set_friction shape 0.7 ;        
       done
     done ;
     space
@@ -60,8 +60,8 @@ object
     let dt = 1./.60./. float steps in
     for i = 0 to steps - 1
     do
-      CpBody.update_position rogue_box_body dt ;
-      CpSpace.step space dt 
+      Cp.Body.update_position rogue_box_body dt ;
+      Cp.Space.step space dt 
     done
 
   method draw target space =

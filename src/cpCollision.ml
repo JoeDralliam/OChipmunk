@@ -1,6 +1,14 @@
 open CpShapeType
-open CpType
-(* type collision_func = CpShape.shape -> CpShape.shape -> CpContact.t -> int  *)
+module Make = functor (Param : CpType.UserData) ->
+struct
+  module Type = CpType.Make(Param)
+  module Private = CpPrivate.Make(Param)
+  module Shape = CpShape.Make(Param)
+  module CircleShape = CpCircleShape.Make(Param)
+  module SegmentShape = CpSegmentShape.Make(Param)
+  module PolyShape = CpPolyShape.Make(Param)
+  open Type
+
 
 let init_contact arr idx p n dist hash =
   CpArray.set arr idx (CpContact.init (CpArray.get arr idx) p n dist hash)
@@ -59,7 +67,7 @@ let find_msa poly planes =
   let rec impl i m m_idx =
     if i < num
     then 
-      let dist = CpSplittingPlane.(CpPolyShape.value_on_axis poly planes.(i).n planes.(i).d) in
+      let dist = CpSplittingPlane.(PolyShape.value_on_axis poly planes.(i).n planes.(i).d) in
       if dist > 0.
       then (-1, 0.)
       else begin
@@ -72,34 +80,34 @@ let find_msa poly planes =
 let find_verts_fallback arr (poly1,shape1) (poly2,shape2) n dist =
   let num = ref 0 in
   Array.iteri (fun i v ->
-    if CpPolyShape.contains_vert_partial poly2 v CpVector.(neg n)
+    if PolyShape.contains_vert_partial poly2 v CpVector.(neg n)
     then
       let next_idx = next_contact_point num in
-      init_contact arr next_idx v n dist (CpPrivate.hash_pair shape1.shhashid i)
+      init_contact arr next_idx v n dist (Private.hash_pair shape1.shhashid i)
   ) PolyShapeImpl.(poly1.t_verts) ;
     
   Array.iteri (fun i v ->
-    if CpPolyShape.contains_vert_partial poly1 v n
+    if PolyShape.contains_vert_partial poly1 v n
     then 
       let next_idx = next_contact_point num in
-      init_contact arr next_idx v n dist (CpPrivate.hash_pair shape2.shhashid i)
+      init_contact arr next_idx v n dist (Private.hash_pair shape2.shhashid i)
   ) PolyShapeImpl.(poly2.t_verts) ;
   !num
 
 let find_verts arr (poly1,shape1) (poly2,shape2) n dist =
   let num = ref 0 in
   Array.iteri (fun i v ->
-    if CpPolyShape.contains_vert poly2 v
+    if PolyShape.contains_vert poly2 v
     then 
       let next_idx = next_contact_point num in
-      init_contact arr next_idx v n dist (CpPrivate.hash_pair shape1.shhashid i)
+      init_contact arr next_idx v n dist (Private.hash_pair shape1.shhashid i)
   ) PolyShapeImpl.(poly1.t_verts) ;
     
   Array.iteri (fun i v ->
-    if CpPolyShape.contains_vert poly1 v
+    if PolyShape.contains_vert poly1 v
     then 
       let next_idx = next_contact_point num in
-      init_contact arr next_idx v n dist (CpPrivate.hash_pair shape2.shhashid i)
+      init_contact arr next_idx v n dist (Private.hash_pair shape2.shhashid i)
   ) PolyShapeImpl.(poly2.t_verts) ;
   if !num <> 0 then !num else (find_verts_fallback arr (poly1,shape1) (poly2,shape2) n dist)
 
@@ -137,7 +145,7 @@ let find_points_behind_seg arr num (seg,_) (poly,shape) p_dist coef =
       if dta >= dt && dt >= dtb
       then 
         let next_idx = next_contact_point num in
-        init_contact arr next_idx v n p_dist CpPrivate.(hash_pair shape.shhashid i)
+        init_contact arr next_idx v n p_dist Private.(hash_pair shape.shhashid i)
   ) ) PolyShapeImpl.(poly.t_verts)
     
 let seg2poly (seg,shape1) (poly,shape2) arr =
@@ -146,8 +154,8 @@ let seg2poly (seg,shape1) (poly,shape2) arr =
   let planes = Poly.(poly.t_planes) in
 
   let seg_d = CpVector.dot Seg.(seg.tn) Seg.(seg.ta) in
-  let min_norm = (CpPolyShape.value_on_axis poly Seg.(seg.tn) seg_d) -. Seg.(seg.r) in
-  let min_neg = (CpPolyShape.value_on_axis poly (CpVector.neg Seg.(seg.tn)) (-.seg_d)) -. Seg.(seg.r) in
+  let min_norm = (PolyShape.value_on_axis poly Seg.(seg.tn) seg_d) -. Seg.(seg.r) in
+  let min_neg = (PolyShape.value_on_axis poly (CpVector.neg Seg.(seg.tn)) (-.seg_d)) -. Seg.(seg.r) in
   if min_neg > 0. || min_norm > 0.
   then 0
   else begin
@@ -172,16 +180,16 @@ let seg2poly (seg,shape1) (poly,shape2) arr =
       let poly_n = CpVector.neg CpSplittingPlane.(planes.(mini).n) in
       let va = CpVector.(add Seg.(seg.ta) (mult poly_n Seg.(seg.r))) in
       let vb = CpVector.(add Seg.(seg.tb) (mult poly_n Seg.(seg.r))) in
-      if CpPolyShape.contains_vert poly va
+      if PolyShape.contains_vert poly va
       then begin
         let next_idx = next_contact_point num in
-        init_contact arr next_idx va poly_n poly_min (CpPrivate.hash_pair shape1.shhashid 0) 
+        init_contact arr next_idx va poly_n poly_min (Private.hash_pair shape1.shhashid 0) 
       end ;
       
-      if CpPolyShape.contains_vert poly vb
+      if PolyShape.contains_vert poly vb
       then begin
         let next_idx = next_contact_point num in
-        init_contact arr next_idx vb poly_n poly_min (CpPrivate.hash_pair shape1.shhashid 1)
+        init_contact arr next_idx vb poly_n poly_min (Private.hash_pair shape1.shhashid 1)
       end ;
 
       if min_norm >= poly_min || min_neg >= poly_min
@@ -248,7 +256,7 @@ let circle2poly (circ,shape1) (poly,shape2) arr =
   end
 
 let collide_shapes a b arr =
-  if not (CpShape.get_type a <= CpShape.get_type b)
+  if not (Shape.get_type a <= Shape.get_type b)
   then Printf.eprintf "Collision shapes passed to cpCollideShape () are not sorted" ;
   match (a.shstrategy,b.shstrategy) with
     | (Circle  circ1, Circle circ2) -> circle2circle  (circ1, a) (circ2, b) arr
@@ -257,3 +265,5 @@ let collide_shapes a b arr =
     | (Segment seg  , Poly    poly) ->    seg2poly    (seg  , a) (poly , b) arr
     | (Poly    poly1, Poly   poly2) ->   poly2poly    (poly1, a) (poly2, b) arr
     | _ -> 0
+
+end
