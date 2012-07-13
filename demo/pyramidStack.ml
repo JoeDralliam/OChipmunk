@@ -40,7 +40,7 @@ object
     do
       for j = 0 to i
       do
-        let body = Cp.Space.add_body space (Cp.Body.make 1. (Ochipmunk.Cp.moment_for_box 1. 30. 30.)) in
+        let body = Cp.Space.add_body space (Cp.Body.make 1. (OChipmunk.Cp.moment_for_box 1. 30. 30.)) in
         Cp.Body.set_pos body (Cp.Vector.make (float (j*32 - i*16)) (float (i*32 - 300))) ;
         
         let shape = Cp.Space.add_shape space (Cp.Shape.make_box body 30. 30.) in
@@ -50,7 +50,7 @@ object
     done ;
 
     let radius = 15. in
-    let body = Cp.Space.add_body space (Cp.Body.make 10. (Ochipmunk.Cp.moment_for_circle 10. 0. radius Cp.Vector.zero)) in
+    let body = Cp.Space.add_body space (Cp.Body.make 10. (OChipmunk.Cp.moment_for_circle 10. 0. radius Cp.Vector.zero)) in
     Cp.Body.set_pos body (Cp.Vector.make 0. (240. -. radius -. 5.)) ;
     let shape = Cp.Space.add_shape space (Cp.Shape.make_circle body radius Cp.Vector.zero) in
     Cp.Shape.set_elasticity shape 0. ;

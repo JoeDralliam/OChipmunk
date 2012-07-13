@@ -46,7 +46,7 @@ object
     do
       for j=0 to 6
       do
-        let body = Cp.Space.add_body space (Cp.Body.make mass (Ochipmunk.Cp.moment_for_box mass width height)) in
+        let body = Cp.Space.add_body space (Cp.Body.make mass (OChipmunk.Cp.moment_for_box mass width height)) in
         Cp.Body.set_pos body (Cp.Vector.make (float (i*60 - 150)) (-.float (j*30 - 150))) ;
         let shape = Cp.Space.add_shape space (Cp.Shape.make_box body width height) in
         Cp.Shape.set_elasticity shape 0. ;

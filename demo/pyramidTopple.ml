@@ -6,7 +6,7 @@ let height = 30.
 
 let add_domino space pos flipped =
   let mass = 1. in
-  let moment = Ochipmunk.Cp.moment_for_box mass width height in
+  let moment = OChipmunk.Cp.moment_for_box mass width height in
   let body = Cp.Space.add_body space (Cp.Body.make mass moment) in
   Cp.Body.set_pos body pos ;
 

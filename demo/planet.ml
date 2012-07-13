@@ -36,7 +36,7 @@ object
       let radius = Cp.Vector.(length (make size size)) in
       let pos = rand_pos radius in
 
-      let body = Cp.Space.add_body space (Cp.Body.make mass (Ochipmunk.Cp.moment_for_poly mass verts Cp.Vector.zero)) in
+      let body = Cp.Space.add_body space (Cp.Body.make mass (OChipmunk.Cp.moment_for_poly mass verts Cp.Vector.zero)) in
       body.bvelocity_func <- (fun body gravity damping dt ->
         let p = Cp.Body.get_pos body in
         let sqdist = Cp.Vector.lengthsq p in

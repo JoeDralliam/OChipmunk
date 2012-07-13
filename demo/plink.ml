@@ -37,7 +37,7 @@ object
 
     for i = 0 to 299
     do
-      let body = Cp.Space.add_body space (Cp.Body.make 1. (Ochipmunk.Cp.moment_for_poly 1. verts Cp.Vector.zero)) in
+      let body = Cp.Space.add_body space (Cp.Body.make 1. (OChipmunk.Cp.moment_for_poly 1. verts Cp.Vector.zero)) in
       let x = (Random.float 640.) -. 320. in
       Cp.Body.set_pos body (Cp.Vector.make x (-.350.)) ;
 
