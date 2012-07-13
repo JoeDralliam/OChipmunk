@@ -1,6 +1,8 @@
 # OASIS_START
-# DO NOT EDIT (digest: 5617d0c941e1641b5d8844b2bafd1c63)
+# DO NOT EDIT (digest: 52ea4c2f38e9db05b1907f2bf58c97db)
 OChipmunk
+CpType
+CpOption
 CpArbiter
 CpBB
 CpBody
@@ -14,7 +16,6 @@ CpSegmentQueryInfo
 CpSegmentShape
 CpShape
 CpShapeType
-CpType
 CpSpace
 CpVector
 CpArbiterThread
@@ -25,7 +26,6 @@ CpConstraint
 CpConstraintUtils
 CpContactBuffer
 CpHashSet
-CpOption
 CpPrivate
 CpSpaceComponent
 CpSpaceHash
